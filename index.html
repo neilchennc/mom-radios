@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<!--
+VideoJS-HTTP-Streaming: https://github.com/videojs/http-streaming#initialization
+VideoJS Document: https://docs.videojs.com/
+VideoJS Events: https://gist.github.com/alexrqs/a6db03bade4dc405a61c63294a64f97a
+Example (ithome): https://ithelp.ithome.com.tw/articles/10209237
+-->
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <!-- VideoJS -->
+  <link href="https://vjs.zencdn.net/7.21.1/video-js.css" rel="stylesheet" />
+  <script src="https://vjs.zencdn.net/7.21.1/video.min.js"></script>
+  <script src="https://unpkg.com/@videojs/http-streaming@2.16.2/dist/videojs-http-streaming.min.js"></script>
+
+  <!-- axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+
+  <!-- Live.js -->
+  <!-- <script src="https://livejs.com/live.js"></script> -->
+
+  <link rel="icon" href="favicon.ico" />
+  <!-- <link rel="icon" href="favicon.png" /> -->
+
+  <title>媽媽的廣播電台</title>
+
+  <meta name="author" content="Neil Chen" />
+  <meta name="title" content="媽媽的廣播電台" />
+  <meta name="description" content="" />
+
+  <script>
+    const broadcasts = [
+      {
+        title: "民本一台",
+        src: "https://streamak0134.akamaized.net/live0134lh-5gst/_definst_/am1296/chunklist.m3u8",
+        type: "application/x-mpegURL",
+        volume: 0.3
+      },
+      {
+        title: "民本二台",
+        src: "https://streamak0134.akamaized.net/live0134lh-5gst/_definst_/am855/chunklist.m3u8",
+        type: "application/x-mpegURL",
+        volume: 0.3
+      },
+      {
+        title: "綠色和平電台",
+        src: "", // will be loaded on document ready
+        type: "application/x-mpegURL",
+        volume: 1.0
+      },
+      {
+        title: "輕鬆電台",
+        src: "https://n09.rcs.revma.com/k41z6wadu5hvv.m4a",
+        type: "audio/mp4",
+        volume: 1.0
+      },
+      {
+        title: "鳳鳴一台",
+        src: "https://am1161.ddns.net:9005/stream.ogg",
+        type: "application/ogg",
+        volume: 0.5
+      },
+      {
+        title: "鳳鳴二台",
+        src: "https://am981.ddns.net:9005/stream.ogg",
+        type: "application/ogg",
+        volume: 1.0
+      },
+      {
+        title: "台灣玲聲",
+        src: "https://s4.radio.co/sc6742e54d/listen",
+        type: "audio/mp3",
+        volume: 0.5
+      },
+      // {
+      //   title: "美聲電台",
+      //   src: "http://1.34.23.16:8080/broadwavehigh.mp3",
+      //   type: "audio/mp3",
+      //   volume: 1.0
+      // },
+      // {
+      //   title: "金聲電台",
+      //   src: "http://60.249.186.105:9000/;?icy=http",
+      //   type: "audio/mp3",
+      //   volume: 0.4
+      // },
+      // {
+      //   title: "歡喜之聲電台",
+      //   src: "http://59.125.41.65:8081/",
+      //   type: "audio/mp3",
+      //   volume: 0.4
+      // },
+      // {
+      //   title: "太陽電台",
+      //   src: "http://211.20.119.102:8081/",
+      //   type: "audio/mp3",
+      //   volume: 0.4
+      // },
+      // {
+      //   title: "正聲電台",
+      //   src: "https://flv.ccdntech.com/live/_definst_/mp4:vod117_Live/live1/playlist.m3u8",
+      //   type: "application/x-mpegURL",
+      //   volume: 1.0
+      // },
+      // {
+      //   title: "ICRT",
+      //   src: "https://icrt.leanstream.co/ICRTFM-MP3?args=web",
+      //   type: "audio/mp3",
+      //   volume: 1.0
+      // },
+    ];
+  </script>
+</head>
+
+<body class="text-center">
+  <div class="container mt-1 mb-1">
+    <div class="row justify-content-center">
+      <div class="col">
+        <div id="broadcast-button-list" class="list-group">
+          <!-- <div id="broadcast-button-list" class="btn-group-vertical d-flex" role="group"> -->
+          <!-- broadcast button list placeholder -->
+        </div>
+      </div>
+      <div class="col text-start">
+        <span id="broadcast-title" class="fs-3">點選左邊電台播放</span>
+        <video-js id="player" class="vjs-default-skin vjs-big-play-centered" style="height:240px; width:320px" controls
+          preload="none">
+          <!-- <source src="https://icrt.leanstream.co/ICRTFM-MP3?args=web" type="audio/mp3"> -->
+          <!-- <source src="rtmp://202.39.43.68/live/RA000126"> -->
+        </video-js>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+    const TOTAL_MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
+    var player;
+
+    // Adding broadcast button list
+    broadcasts.forEach((broadcast, index) => {
+      $('#broadcast-button-list').append(`<button type="button" class="list-group-item list-group-item-action fs-5" onclick="playBroadcast(${index})">${broadcast.title}</button>`);
+      // $('#broadcast-button-list').append(`<input type="radio" class="btn-check" name="vbtn-radio" id="vbtn-radio${index}" autocomplete="off" onclick="playBroadcast(${index})">`);
+      // $('#broadcast-button-list').append(`<label class="btn btn-outline-dark fs-5" for="vbtn-radio${index}">${broadcast.title}</label>`);
+    });
+
+    // Called when document is ready
+    $(document).ready(() => {
+      // initialize videojs
+      // var player = videojs('#player', { controls: true }, {'nativeAudioTracks': false, 'nativeVideoTracks': false, 'hls': { 'overrideNative': true } });
+      player = videojs('player', {
+        'playsinline': false,
+        inactivityTimeout: 0, // always show control bar
+        bigPlayButton: false, // disable big play button
+        userActions: {
+          doubleClick: false // disable double click fullscreen
+        },
+        controlBar: {
+          fullscreenToggle: false, // disable fullscreen button
+          pictureInPictureToggle: false, // disable picture in picture button
+        },
+      });
+
+      // Setup period update timer for loading Greenpeace url
+      updateGreenpeaceUrl(); // update first
+      setInterval(updateGreenpeaceUrl, TOTAL_MILLISECONDS_PER_HOUR); // update routine for every 1 hour
+
+      // Calculate and setup next trigger
+      // setTimeout(() => onNextTimeout(), getNextTimeout());
+      // setTimeout(() => onNextTimeout(), 15000);
+
+      // Events
+      player.on('ready', () => {
+        console.log('player event: ready');
+      });
+      player.on('error', () => {
+        console.log('player event: error');
+      });
+      player.on('loadstart', () => {
+        console.log('player event: loadstart');
+      });
+      player.on('playing', () => {
+        console.log('player event: playing');
+      });
+      player.on('pause', () => {
+        console.log('player event: pause');
+        stopPlay(); // Stop playing when pause
+      });
+      player.on('waiting', () => {
+        console.log('player event: waiting');
+      });
+      player.on('abort', () => {
+        console.log('player event: abort');
+      });
+      player.on('emptied', () => {
+        console.log('player event: emptied');
+      });
+      player.on('stalled', () => {
+        console.log('player event: stalled');
+      });
+      player.on('ended', () => {
+        console.log('player event: ended');
+      });
+      player.on('suspend', () => {
+        console.log('player event: suspend');
+      });
+    });
+
+    /**
+     * Load Greenpeace stream url (fetch access token).
+     */
+    function updateGreenpeaceUrl() {
+      axios.get('/greenpeace/')
+        .then((response) => {
+          const url = response.data;
+          console.log(`Greenpeace stream url: ${url}`);
+          broadcasts.find(broadcast => broadcast.title == "綠色和平電台").src = url; // update stream url
+        })
+        .catch((error) => console.log(error));
+    }
+
+    function onNextTimeout() {
+      console.debug("onNextTimeout");
+      playBroadcast(3); // 輕鬆
+      setTimeout(() => onNextTimeout(), getNextTimeout());
+    }
+
+    function getNextTimeout() {
+      var now = Date.now();
+      var base_time = new Date(1970, 0, 1, 5, 0, 0).getTime();
+      var delta = now - base_time;
+      var delta_days = delta / TOTAL_MILLISECONDS_PER_DAY;
+      var next_time = Math.ceil((Math.ceil(delta_days) - delta_days) * TOTAL_MILLISECONDS_PER_DAY);
+
+      // Adjust invalid time
+      if (next_time <= 0) {
+        next_time = TOTAL_MILLISECONDS_PER_DAY;
+      }
+
+      console.debug(`now: ${now}`);
+      console.debug(`base: ${base_time}`);
+      console.debug(`delta: ${delta}`);
+      console.debug(`delta_days: ${delta_days}`);
+      console.debug(`next_time (millis): ${next_time}`);
+      console.debug(`next_time (secs): ${next_time / 1000}`);
+      console.debug(`next_time (mins): ${next_time / 1000 / 60}`);
+      console.debug(`next_time (hrs): ${next_time / 1000 / 60 / 60}`);
+
+      return next_time;
+    }
+
+    function playBroadcast(broadcast_id, play_now = true) {
+      const broadcast = broadcasts[broadcast_id];
+      console.debug(broadcast);
+
+      // update title
+      $('#broadcast-title').html(broadcast.title);
+
+      // prepare source
+      player.src({
+        src: broadcast.src,
+        type: broadcast.type
+      });
+
+      // set volume
+      player.volume(broadcast.volume);
+
+      // start playing
+      if (play_now) {
+        player.play();
+      }
+    }
+
+    // experimental
+    function stopPlay() {
+      player.pause();
+      player.reset();
+      //player.src = "";
+      //player.resetControlBarUI_();
+    }
+  </script>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
