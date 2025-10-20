@@ -30,6 +30,9 @@ Example (ithome): https://ithelp.ithome.com.tw/articles/10209237
   <!-- axios -->
   <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
 
+  <!-- cheerio -->
+  <script src="https://cdn.jsdelivr.net/npm/cheerio@1.1.2/dist/browser/index.min.js"></script>
+
   <!-- Live.js -->
   <!-- <script src="https://livejs.com/live.js"></script> -->
 
@@ -224,13 +227,32 @@ Example (ithome): https://ithelp.ithome.com.tw/articles/10209237
      * Load Greenpeace stream url (fetch access token).
      */
     function updateGreenpeaceUrl() {
-      axios.get('/greenpeace/')
-        .then((response) => {
-          const url = response.data;
+      //axios.get('/greenpeace/')
+      //  .then((response) => {
+      //    const url = response.data;
+      //    console.log(`Greenpeace stream url: ${url}`);
+      //    broadcasts.find(broadcast => broadcast.title == "綠色和平電台").src = url; // update stream url
+      //  })
+      //  .catch((error) => console.log(error));
+	  axios.get('https://greenpeace.bcom.tw/playVideo.php')
+        .then(function (response) {
+          // handle success
+          const $ = cheerio.load(response.data);
+          const source = $('#source');
+          const url = source.attr('src');
+          const type = source.attr('type');
+          // console.log(`Stream url: ${url}, type: ${type}`);
+          //res.send(url);
           console.log(`Greenpeace stream url: ${url}`);
           broadcasts.find(broadcast => broadcast.title == "綠色和平電台").src = url; // update stream url
         })
-        .catch((error) => console.log(error));
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        })
+        .finally(function () {
+          // always executed
+        });
     }
 
     function onNextTimeout() {
